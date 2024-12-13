@@ -1,94 +1,123 @@
 import 'package:flutter/material.dart';
-import '../models/student.dart';
+import 'package:yehortitarenko/models/student.dart';
+import 'package:yehortitarenko/widgets/text_input_field.dart';
+import 'package:yehortitarenko/widgets/dropdown_input_field.dart';
 
 class NewStudent extends StatefulWidget {
-  final Student? student;
+  const NewStudent({super.key, required this.onSave, this.existingStudent});
 
-  const NewStudent({Key? key, this.student}) : super(key: key);
+  final Function(Student) onSave;
+  final Student? existingStudent;
 
   @override
-  _NewStudentState createState() => _NewStudentState();
+  State<NewStudent> createState() => _NewStudentState();
 }
 
 class _NewStudentState extends State<NewStudent> {
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  Department _selectedDepartment = Department.finance;
-  Gender _selectedGender = Gender.male;
-  final _gradeController = TextEditingController();
+  late TextEditingController firstNameController;
+  late TextEditingController lastNameController;
+  late TextEditingController gradeController;
+
+  Gender selectedGender = Gender.male;
+  Department selectedDepartment = Department.finance;
 
   @override
   void initState() {
     super.initState();
-    if (widget.student != null) {
-      _firstNameController.text = widget.student!.firstName;
-      _lastNameController.text = widget.student!.lastName;
-      _selectedDepartment = widget.student!.department;
-      _selectedGender = widget.student!.gender;
-      _gradeController.text = widget.student!.grade.toString();
-    }
+
+    final existingStudent = widget.existingStudent;
+    firstNameController =
+        TextEditingController(text: existingStudent?.firstName ?? '');
+    lastNameController =
+        TextEditingController(text: existingStudent?.lastName ?? '');
+    gradeController = TextEditingController(
+        text: existingStudent != null ? existingStudent.grade.toString() : '');
+    selectedGender = existingStudent?.gender ?? Gender.male;
+    selectedDepartment = existingStudent?.department ?? Department.it;
+  }
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    gradeController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.only(
+        top: 16.0,
+        left: 16.0,
+        right: 16.0,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
+      ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextField(
-            controller: _firstNameController,
-            decoration: const InputDecoration(labelText: 'First Name'),
+          TextInputField(
+            controller: firstNameController,
+            labelText: 'First Name',
+            maxLength: 50,
           ),
-          TextField(
-            controller: _lastNameController,
-            decoration: const InputDecoration(labelText: 'Last Name'),
-          ),
-          DropdownButton<Department>(
-            value: _selectedDepartment,
-            items: Department.values.map((department) {
-              return DropdownMenuItem<Department>(
-                value: department,
-                child: Text(department.toString().split('.').last),
-              );
-            }).toList(),
-            onChanged: (newValue) {
-              setState(() {
-                _selectedDepartment = newValue!;
-              });
-            },
-          ),
-          DropdownButton<Gender>(
-            value: _selectedGender,
-            items: Gender.values.map((gender) {
-              return DropdownMenuItem<Gender>(
-                value: gender,
-                child: Text(gender.toString().split('.').last),
-              );
-            }).toList(),
-            onChanged: (newValue) {
-              setState(() {
-                _selectedGender = newValue!;
-              });
-            },
-          ),
-          TextField(
-            controller: _gradeController,
+          const SizedBox(height: 16.0),
+          TextInputField(
+              controller: lastNameController,
+              labelText: 'Last Name',
+              maxLength: 50),
+          const SizedBox(height: 16.0),
+          TextInputField(
+            controller: gradeController,
+            labelText: 'Grade',
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Grade'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              final newStudent = Student(
-                firstName: _firstNameController.text,
-                lastName: _lastNameController.text,
-                department: _selectedDepartment,
-                grade: int.parse(_gradeController.text),
-                gender: _selectedGender,
-              );
-              Navigator.of(context).pop(newStudent);
+          const SizedBox(height: 16.0),
+          DropdownInputField<Gender>(
+            value: selectedGender,
+            items: Gender.values,
+            onChanged: (value) {
+              setState(() {
+                selectedGender = value!;
+              });
             },
-            child:
-                Text(widget.student == null ? 'Add Student' : 'Edit Student'),
+            labelText: 'Gender',
+          ),
+          const SizedBox(height: 16.0),
+          DropdownInputField<Department>(
+            value: selectedDepartment,
+            items: Department.values,
+            onChanged: (value) {
+              setState(() {
+                selectedDepartment = value!;
+              });
+            },
+            labelText: 'Department',
+          ),
+          const SizedBox(height: 16.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final newStudent = Student(
+                    firstName: firstNameController.text,
+                    lastName: lastNameController.text,
+                    department: selectedDepartment,
+                    grade: int.parse(gradeController.text),
+                    gender: selectedGender,
+                  );
+                  widget.onSave(newStudent);
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Save Student'),
+              ),
+            ],
           ),
         ],
       ),

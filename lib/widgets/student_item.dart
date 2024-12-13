@@ -1,41 +1,56 @@
 import 'package:flutter/material.dart';
-import '../models/student.dart';
+import 'package:yehortitarenko/models/student.dart';
 
 class StudentItem extends StatelessWidget {
-  final Student student;
+  const StudentItem({
+    super.key,
+    required this.student,
+  });
 
-  const StudentItem({Key? key, required this.student}) : super(key: key);
+  final Student student;
 
   @override
   Widget build(BuildContext context) {
-    final genderColor =
+    final Color cardColor =
         student.gender == Gender.male ? Colors.blue : Colors.pink;
 
-    return Container(
-      color: genderColor,
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            '${student.firstName} ${student.lastName}',
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+    final IconData departmentIcon;
+    switch (student.department) {
+      case Department.it:
+        departmentIcon = Icons.computer;
+        break;
+      case Department.finance:
+        departmentIcon = Icons.account_balance;
+        break;
+      case Department.law:
+        departmentIcon = Icons.gavel;
+        break;
+      case Department.medical:
+        departmentIcon = Icons.medical_services;
+        break;
+    }
+
+    return Card(
+      color: cardColor,
+      child: ListTile(
+        leading: Text(
+          '${student.firstName} ${student.lastName}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          Row(
-            children: [
-              Icon(
-                departmentIcons[student.department],
-                color: Colors.white,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                '${student.grade}',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-        ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(departmentIcon, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              student.grade.toString(),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
